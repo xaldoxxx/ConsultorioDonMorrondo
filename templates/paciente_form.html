@@ -1,32 +1,43 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h3>Nuevo Paciente</h3>
+<h3>
+    {% if editando %}
+        Editar Paciente
+    {% else %}
+        Nuevo Paciente
+    {% endif %}
+</h3>
 
 <form method="POST">
     <div class="row">
         <div class="col-md-6 mb-3">
             <label class="form-label">Nombre</label>
-            <input type="text" name="nombre" class="form-control" required>
+            <input type="text" name="nombre" class="form-control"
+                   value="{{ paciente.nombre if editando else '' }}" required>
         </div>
 
         <div class="col-md-6 mb-3">
             <label class="form-label">Apellido</label>
-            <input type="text" name="apellido" class="form-control" required>
+            <input type="text" name="apellido" class="form-control"
+                   value="{{ paciente.apellido if editando else '' }}" required>
         </div>
     </div>
 
     <div class="mb-3">
         <label class="form-label">Diagnóstico</label>
-        <textarea name="diagnostico" class="form-control" required></textarea>
+        <textarea name="diagnostico" class="form-control" required>{{ paciente.historia_clinica.diagnostico if editando else '' }}</textarea>
     </div>
 
     <div class="mb-3">
         <label class="form-label">Observaciones</label>
-        <textarea name="observaciones" class="form-control"></textarea>
+        <textarea name="observaciones" class="form-control">{{ paciente.historia_clinica.observaciones if editando else '' }}</textarea>
     </div>
 
-    <button class="btn btn-primary">Guardar</button>
+    <button class="btn btn-primary">
+        {% if editando %}Actualizar{% else %}Guardar{% endif %}
+    </button>
+
     <a href="{{ url_for('listar_pacientes') }}" class="btn btn-secondary">Cancelar</a>
 </form>
 {% endblock %}

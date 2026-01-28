@@ -147,3 +147,37 @@ with app.app_context():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+# -----------------------
+# EDITAR PACIENTE (UPDATE)
+# -----------------------
+@app.route('/pacientes/editar/<int:id>', methods=['GET', 'POST'])
+@login_required
+def editar_paciente(id):
+    if current_user.role not in ['admin', 'usuario2']:
+        flash('No tenés permiso para editar pacientes')
+        return redirect(url_for('listar_pacientes'))
+
+    paciente = Paciente.query.get_or_404(id)
+
+    if request.method == 'POST':
+        try:
+            paciente.nombre = request.form['nombre']
+            paciente.apellido = request.form['apellido']
+            paciente.historia_clinica.diagnostico = request.form['diagnostico']
+            paciente.historia_clinica.observaciones = request.form['observaciones']
+
+            db.session.commit()
+            flash('Paciente actualizado correctamente')
+            return redirect(url_for('listar_pacientes'))
+
+        except Exception:
+            db.session.rollback()
+            flash('Error al actualizar paciente')
+            return redirect(url_for('editar_paciente', id=id))
+
+    return render_template(
+        'paciente_form.html',
+        paciente=paciente,
+        editando=True
+    )
