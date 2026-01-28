@@ -181,3 +181,16 @@ def editar_paciente(id):
         paciente=paciente,
         editando=True
     )
+
+# -----------------------
+# VER HISTORIA CLÍNICA (SOLO LECTURA)
+# -----------------------
+@app.route('/pacientes/ver/<int:id>')
+@login_required
+def ver_paciente(id):
+    paciente = Paciente.query.get_or_404(id)
+
+    return render_template(
+        'paciente_detalle.html',
+        paciente=paciente
+    )

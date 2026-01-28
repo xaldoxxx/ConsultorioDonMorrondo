@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card shadow">
+    <div class="card-header bg-primary text-white">
+        Historia Clínica — {{ paciente.nombre }} {{ paciente.apellido }}
+    </div>
+
+    <div class="card-body">
+        <h5 class="card-title">Datos del Paciente</h5>
+
+        <ul class="list-group mb-4">
+            <li class="list-group-item">
+                <strong>Nombre:</strong> {{ paciente.nombre }}
+            </li>
+            <li class="list-group-item">
+                <strong>Apellido:</strong> {{ paciente.apellido }}
+            </li>
+        </ul>
+
+        <h5 class="card-title">Historia Clínica</h5>
+
+        <div class="mb-3">
+            <label class="form-label fw-bold">Diagnóstico</label>
+            <div class="border rounded p-2 bg-light">
+                {{ paciente.historia_clinica.diagnostico }}
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label fw-bold">Observaciones</label>
+            <div class="border rounded p-2 bg-light">
+                {{ paciente.historia_clinica.observaciones or 'Sin observaciones' }}
+            </div>
+        </div>
+
+        <a href="{{ url_for('listar_pacientes') }}" class="btn btn-secondary">
+            Volver al listado
+        </a>
+    </div>
+</div>
+{% endblock %}

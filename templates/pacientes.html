@@ -27,6 +27,11 @@
             <td>{{ p.apellido }}</td>
             <td>{{ p.historia_clinica.diagnostico }}</td>
             <td>
+                <a href="{{ url_for('ver_paciente', id=p.id) }}"
+                   class="btn btn-sm btn-info">
+                    Ver
+                </a>
+
                 {% if current_user.role in ['admin', 'usuario2'] %}
                     <a href="{{ url_for('editar_paciente', id=p.id) }}"
                        class="btn btn-sm btn-warning">
@@ -40,10 +45,6 @@
                        onclick="return confirm('¿Eliminar paciente?')">
                         Eliminar
                     </a>
-                {% endif %}
-
-                {% if current_user.role == 'usuario3' %}
-                    <span class="text-muted">Solo lectura</span>
                 {% endif %}
             </td>
         </tr>
