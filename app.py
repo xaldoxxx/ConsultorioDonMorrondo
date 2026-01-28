@@ -4,7 +4,18 @@ from models.entities import db, User, Paciente, HistoriaClinica
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'dev_key_123'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///consultorio.db'
+
+# -----------------------
+# BASE DE DATOS
+# -----------------------
+# DESARROLLO (SQLite)
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///consultorio.db'
+
+# PRODUCCIÓN (PythonAnywhere - MySQL)
+app.config['SQLALCHEMY_DATABASE_URI'] = (
+    'mysql+pymysql://USUARIO:CLAVE@USUARIO.mysql.pythonanywhere-services.com/consultorio_don_morrondo'
+)
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
@@ -21,7 +32,7 @@ def load_user(user_id):
 # -----------------------
 # LOGIN
 # -----------------------
-@app.route('/', methods=['GET'])
+@app.route('/')
 def index():
     return render_template('login.html')
 
@@ -49,23 +60,16 @@ def logout():
 
 
 # -----------------------
-# DASHBOARD SEGÚN ROL
+# DASHBOARD
 # -----------------------
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    if current_user.role == 'admin':
-        return redirect(url_for('listar_pacientes'))
-    elif current_user.role == 'usuario1':
-        return redirect(url_for('listar_pacientes'))
-    elif current_user.role == 'usuario2':
-        return redirect(url_for('listar_pacientes'))
-    else:
-        return redirect(url_for('listar_pacientes'))
+    return redirect(url_for('listar_pacientes'))
 
 
 # -----------------------
-# CREAR PACIENTE + HISTORIA (ATÓMICO)
+# CREAR PACIENTE + HISTORIA
 # -----------------------
 @app.route('/pacientes/nuevo', methods=['GET', 'POST'])
 @login_required
@@ -87,17 +91,15 @@ def crear_paciente():
             )
 
             paciente.historia_clinica = historia
-
             db.session.add(paciente)
             db.session.commit()
 
             flash('Paciente creado correctamente')
             return redirect(url_for('listar_pacientes'))
 
-        except Exception as e:
+        except Exception:
             db.session.rollback()
             flash('Error al crear paciente')
-            return redirect(url_for('crear_paciente'))
 
     return render_template('paciente_form.html')
 
@@ -113,43 +115,7 @@ def listar_pacientes():
 
 
 # -----------------------
-# BAJA LÓGICA
-# -----------------------
-@app.route('/pacientes/eliminar/<int:id>')
-@login_required
-def eliminar_paciente(id):
-    if current_user.role != 'admin':
-        flash('Solo el administrador puede eliminar')
-        return redirect(url_for('listar_pacientes'))
-
-    paciente = Paciente.query.get_or_404(id)
-    paciente.eliminado = True
-    db.session.commit()
-
-    flash('Paciente eliminado')
-    return redirect(url_for('listar_pacientes'))
-
-
-# -----------------------
-# INIT DB
-# -----------------------
-with app.app_context():
-    db.create_all()
-    if not User.query.first():
-        db.session.add_all([
-            User(username='admin', password='123', role='admin'),
-            User(username='user1', password='123', role='usuario1'),
-            User(username='user2', password='123', role='usuario2'),
-            User(username='user3', password='123', role='usuario3')
-        ])
-        db.session.commit()
-
-
-if __name__ == '__main__':
-    app.run(debug=True)
-
-# -----------------------
-# EDITAR PACIENTE (UPDATE)
+# EDITAR PACIENTE
 # -----------------------
 @app.route('/pacientes/editar/<int:id>', methods=['GET', 'POST'])
 @login_required
@@ -174,7 +140,6 @@ def editar_paciente(id):
         except Exception:
             db.session.rollback()
             flash('Error al actualizar paciente')
-            return redirect(url_for('editar_paciente', id=id))
 
     return render_template(
         'paciente_form.html',
@@ -182,15 +147,37 @@ def editar_paciente(id):
         editando=True
     )
 
+
 # -----------------------
-# VER HISTORIA CLÍNICA (SOLO LECTURA)
+# VER HISTORIA CLÍNICA (READ ONLY)
 # -----------------------
 @app.route('/pacientes/ver/<int:id>')
 @login_required
 def ver_paciente(id):
     paciente = Paciente.query.get_or_404(id)
+    return render_template('paciente_detalle.html', paciente=paciente)
 
-    return render_template(
-        'paciente_detalle.html',
-        paciente=paciente
-    )
+
+# -----------------------
+# BAJA LÓGICA
+# -----------------------
+@app.route('/pacientes/eliminar/<int:id>')
+@login_required
+def eliminar_paciente(id):
+    if current_user.role != 'admin':
+        flash('Solo el administrador puede eliminar')
+        return redirect(url_for('listar_pacientes'))
+
+    paciente = Paciente.query.get_or_404(id)
+    paciente.eliminado = True
+    db.session.commit()
+
+    flash('Paciente eliminado')
+    return redirect(url_for('listar_pacientes'))
+
+
+# -----------------------
+# MAIN
+# -----------------------
+if __name__ == '__main__':
+    app.run(debug=True)
